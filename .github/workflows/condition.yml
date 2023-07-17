@@ -1,0 +1,33 @@
+name: condition test
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  job1:
+    name: condition test
+    runs-on: ubuntu-latest
+    environment: test
+    outputs:
+      version: ${{ steps.read_version.outputs.version }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: read version step
+        id: read_version
+        run: echo "version=$(cat version.info)" >> "$GITHUB_OUTPUT"
+
+      - name: condition test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: echo "condition test"
+
+      - name: version dev condition
+        if: ${{ contains(steps.read_version.outputs.version, 'dev') }}
+        run: echo "version dev condition ${{steps.read_version.outputs.version}}"
+
+      - name: version condition
+        if: ${{ !contains(steps.read_version.outputs.version, 'dev') }}
+        run: echo "version condition ${{steps.read_version.outputs.version}}"
